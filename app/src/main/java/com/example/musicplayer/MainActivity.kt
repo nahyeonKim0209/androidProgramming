@@ -1,5 +1,6 @@
 package com.example.musicplayer
 
+import android.content.Intent
 import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.net.Uri
@@ -24,6 +25,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        //액션바 설정
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
@@ -34,11 +36,15 @@ class MainActivity : AppCompatActivity() {
         val uri = Uri.parse(uriString)
         retriever.setDataSource(this, uri)
 
+        //메타 데이터 설정
         val title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
         val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+        val artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
         val musicTitle1 = findViewById<TextView>(R.id.musicTitle1)
         val musicTimer1 = findViewById<TextView>(R.id.musicTimer1)
+        val musicArtist = findViewById<TextView>(R.id.musicArtist)
         musicTitle1.text = title ?: "Unknown Title"
+        musicArtist.text = artist ?: "Unknown Artist"
         val durationLong = duration?.toLongOrNull() ?: 0L
         val durationMinutes = durationLong / 1000 / 60
         val durationSeconds = durationLong / 1000 % 60
@@ -57,66 +63,12 @@ class MainActivity : AppCompatActivity() {
 
         val firstMusicLayout = findViewById<LinearLayout>(R.id.firstMusic)
         firstMusicLayout.setOnClickListener {
-            if (isPlaying) {
-                mediaPlayer.pause()
-                isPlaying = false
-            } else {
-                mediaPlayer.start()
-                isPlaying = true
-                updateSeekBar()
-            }
-
-            //가수 -> 플레이어 바
-            val musicArtist = findViewById<TextView>(R.id.musicArtist)
-            val seekbar = findViewById<SeekBar>(R.id.seekBar)
-
-            musicArtist.visibility = View.GONE
-            seekbar.visibility = View.VISIBLE
-
-            val imageView = findViewById<ImageView>(R.id.imageView)
-            var isIconChanged = false
-
-
-                if(isIconChanged){
-                    imageView.setImageResource(R.drawable.ready)
-
-                }else {
-                    imageView.setImageResource(R.drawable.play)
-                }
-
-
-            // 배경색 변경
-            val background = findViewById<LinearLayout>(R.id.firstMusic)
-            if (isPlaying) {
-                background.setBackgroundColor(resources.getColor(R.color.bgYellow)) // 배경색을 변경할 색상으로 설정하세요.
-            } else {
-                background.setBackgroundColor(resources.getColor(android.R.color.white)) // 배경색을 변경할 색상으로 설정하세요.
-            }
+            val intent = Intent(this, PlayerActivity::class.java)
+            startActivity(intent)
         }
-
-
-        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    mediaPlayer.seekTo(progress)
-                }
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
     }
 
-    private fun updateSeekBar() {
-        seekBar.progress = mediaPlayer.currentPosition
-        handler.postDelayed({ updateSeekBar() }, 1000)
-        val durationLeft = mediaPlayer.duration - mediaPlayer.currentPosition
-        val minutesLeft = durationLeft / 1000 / 60
-        val secondsLeft = durationLeft / 1000 % 60
-        val musicTimer1 = findViewById<TextView>(R.id.musicTimer1)
-        musicTimer1.text = String.format("%02d:%02d", minutesLeft, secondsLeft)
-    }
+
 
     override fun onDestroy() {
         super.onDestroy()
